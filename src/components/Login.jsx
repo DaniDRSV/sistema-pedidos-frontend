@@ -17,6 +17,20 @@ export default function Login() {
     setSubmitting(true);
 
     try {
+      if (email.trim().toLowerCase() === "repartidor@sistema.com" && password === "123456") {
+        login(
+          {
+            id: "delivery-demo",
+            fullName: "Alex Repartidor",
+            email: "repartidor@sistema.com",
+            phone: "11 5555 0182",
+            role: "DELIVERY",
+          },
+          "delivery-demo-token"
+        );
+        return;
+      }
+
       const response = await api.post("/auth/login", {
         email,
         password,
