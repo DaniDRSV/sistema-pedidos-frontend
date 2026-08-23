@@ -2,11 +2,14 @@ import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from './context/AuthContext';
 import { AuthProvider } from './context/AuthProvider';
 import Login from './components/Login';
+import Register from './components/Register';
 import DashboardTemplate from './components/DashboardTemplate';
 import ClientDashboard from './components/client/ClientDashboard'; 
 import DeliveryDashboard from './components/DeliveryDashboard';
 
 const routes = {
+  login: '#/login',
+  register: '#/register',
   dashboard: '#/dashboard',
   clients: '#/clientes',
   delivery: '#/repartidores',
@@ -26,8 +29,12 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    if (!user && currentRoute !== routes.dashboard) {
-      window.location.hash = routes.dashboard;
+    if (
+      !user &&
+      currentRoute !== routes.login &&
+      currentRoute !== routes.register
+    ) {
+      window.location.hash = routes.login;
     }
   }, [user, currentRoute]);
 
@@ -41,6 +48,9 @@ function MainApp() {
   };
 
   if (!user) {
+    if (currentRoute === routes.register) {
+      return <Register />;
+    }
     return <Login />;
   }
 
