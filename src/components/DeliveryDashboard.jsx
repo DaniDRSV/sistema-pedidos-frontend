@@ -36,7 +36,7 @@ function Icon({ children, className = "h-5 w-5" }) {
   );
 }
 
-export default function DeliveryDashboard() {
+export default function DeliveryDashboard({ onBack }) {
   const { user, logout } = useContext(AuthContext);
   const [turnoActivo, setTurnoActivo] = useState(true);
   const [pedidos, setPedidos] = useState(pedidosIniciales);
@@ -100,6 +100,15 @@ export default function DeliveryDashboard() {
         <header className="border-b border-slate-200 bg-white/90 px-5 py-5 backdrop-blur md:px-10">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div>
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="mb-2 text-xs font-bold text-emerald-700 transition-colors hover:text-emerald-500"
+                >
+                  ← Panel administrativo
+                </button>
+              )}
               <p className="text-sm font-semibold text-emerald-600">Lunes, 14 de octubre</p>
               <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-900 md:text-3xl">Hola, {nombre} <span aria-hidden="true">👋</span></h1>
               <p className="mt-1 text-sm text-slate-500">Todo listo para una nueva jornada.</p>

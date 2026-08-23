@@ -15,7 +15,7 @@ const productosDestacados = [
   { id: 8, nombre: "SSD NVMe 1TB", precio: 65.0, categoria: "Componentes" },
 ];
 
-export default function ClientDashboard() {
+export default function ClientDashboard({ onBack }) {
   const { user, logout } = useContext(AuthContext);
   const [busqueda, setBusqueda] = useState("");
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
@@ -40,6 +40,16 @@ export default function ClientDashboard() {
           <h1 className="order-1 text-2xl font-black text-emerald-500">
             Odyssey
           </h1>
+
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="order-2 rounded-lg px-2 py-1 text-xs font-semibold text-slate-400 transition-colors hover:bg-slate-800 hover:text-white md:order-1"
+            >
+              ← Panel administrativo
+            </button>
+          )}
 
           <div className="order-3 w-full md:order-2 md:flex-1">
             <input
