@@ -175,6 +175,19 @@ export default function Login() {
                   : "Iniciar Sesión"}
               </button>
 
+              <div className="mt-6 text-center text-sm text-slate-400">
+                ¿No tienes una cuenta?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.hash = "#/register";
+                  }}
+                  className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Crear una cuenta
+                </button>
+              </div>
+
             </form>
 
           </div>
