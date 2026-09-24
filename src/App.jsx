@@ -13,6 +13,8 @@ const routes = {
   dashboard: '#/dashboard',
   clients: '#/clientes',
   delivery: '#/repartidores',
+  adminProducts: '#/admin/productos',
+  adminCategories: '#/admin/categorias',
 };
 
 const getCurrentRoute = () => window.location.hash || routes.dashboard;
