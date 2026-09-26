@@ -1,10 +1,13 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import AdminProducts from './admin/AdminProducts';
 
 const routes = {
   dashboard: "#/dashboard",
   clients: "#/clientes",
   delivery: "#/repartidores",
+  adminProducts: "#/admin/productos",
+  adminCategories: "#/admin/categorias",
 };
 
 function Icon({ name, className = "h-5 w-5" }) {
@@ -41,7 +44,7 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
 
   const menu = [
     { label: "Dashboard", icon: "dashboard", route: routes.dashboard },
-    { label: "Productos", icon: "products" },
+    { label: "Productos", icon: "products", route: routes.adminProducts },
     { label: "Ventas", icon: "sales" },
     { label: "Clientes", icon: "clients", route: routes.clients },
     { label: "Repartidores", icon: "delivery", route: routes.delivery },
@@ -165,6 +168,7 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
         </header>
 
         <main className="mx-auto max-w-7xl px-5 py-7 md:px-8 md:py-10 lg:px-10">
+          {/* Mobile Nav (se mantiene igual) */}
           <nav className="mb-6 flex gap-2 overflow-x-auto pb-2 lg:hidden" aria-label="Accesos rápidos">
             {menu.map((item) => (
               <button
@@ -183,70 +187,81 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
             ))}
           </nav>
 
-          <section className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-700 via-emerald-600 to-slate-900 p-7 shadow-2xl shadow-emerald-950/30 md:p-10">
-            <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -bottom-28 left-1/3 h-72 w-72 rounded-full bg-slate-950/25 blur-3xl" />
-            <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div className="max-w-2xl">
-                <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-100">Resumen general</p>
-                <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl">
-                  Hola, {firstName} <span aria-hidden="true">👋</span>
-                </h2>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-emerald-50 md:text-base">
-                  Bienvenido al centro de control de Odyssey. Gestiona tus operaciones desde un espacio claro y organizado.
-                </p>
-              </div>
-              <div className="w-fit rounded-2xl border border-white/20 bg-slate-950/20 px-5 py-4 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-100">Rol actual</p>
-                <p className="mt-1 text-lg font-black text-white">{role}</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {[
-              { label: "Usuario", value: user.fullName, detail: "Sesión actualmente activa", color: "emerald" },
-              { label: "Correo", value: user.email, detail: "Cuenta de acceso", color: "sky" },
-              { label: "Teléfono", value: user.phone || "No registrado", detail: "Información de contacto", color: "violet" },
-            ].map((item) => (
-              <article key={item.label} className="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/20 backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:border-white/20">
-                <div className={`h-1.5 w-11 rounded-full ${item.color === "emerald" ? "bg-emerald-400" : item.color === "sky" ? "bg-sky-400" : "bg-violet-400"}`} />
-                <p className="mt-4 text-sm font-medium text-slate-400">{item.label}</p>
-                <p className="mt-1 truncate text-lg font-bold text-white">{item.value}</p>
-                <p className="mt-2 text-xs text-slate-500">{item.detail}</p>
-              </article>
-            ))}
-          </section>
-
-          <section className="mt-8 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/20 backdrop-blur-sm md:p-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-400">Módulos</p>
-                <h3 className="mt-2 text-2xl font-black tracking-tight text-white">Accesos rápidos</h3>
-                <p className="mt-2 text-sm text-slate-400">Elige el área que deseas consultar o administrar.</p>
-              </div>
-            </div>
-
-            <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {modules.map((module) => (
-                <button
-                  key={module.title}
-                  type="button"
-                  onClick={() => goTo(module.route)}
-                  className="group rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400/40 hover:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
-                >
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl border ${module.accent}`}>
-                    <Icon name={module.icon} />
+          {/* ========================================== */}
+          {/* RENDERIZADO CONDICIONAL DEL CONTENIDO      */}
+          {/* ========================================== */}
+          
+          {currentRoute === routes.adminProducts ? (
+            <AdminProducts />
+          ): (
+            <>
+              {/* CONTENIDO POR DEFECTO (RESUMEN GENERAL) */}
+              <section className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-700 via-emerald-600 to-slate-900 p-7 shadow-2xl shadow-emerald-950/30 md:p-10">
+                <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+                <div className="absolute -bottom-28 left-1/3 h-72 w-72 rounded-full bg-slate-950/25 blur-3xl" />
+                <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                  <div className="max-w-2xl">
+                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-100">Resumen general</p>
+                    <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl">
+                      Hola, {firstName} <span aria-hidden="true">👋</span>
+                    </h2>
+                    <p className="mt-3 max-w-xl text-sm leading-6 text-emerald-50 md:text-base">
+                      Bienvenido al centro de control de Odyssey. Gestiona tus operaciones desde un espacio claro y organizado.
+                    </p>
                   </div>
-                  <div className="mt-5 flex items-center justify-between gap-3">
-                    <h4 className="font-bold text-white">{module.title}</h4>
-                    <span className="text-lg text-slate-500 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-emerald-300">→</span>
+                  <div className="w-fit rounded-2xl border border-white/20 bg-slate-950/20 px-5 py-4 backdrop-blur-sm">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-emerald-100">Rol actual</p>
+                    <p className="mt-1 text-lg font-black text-white">{role}</p>
                   </div>
-                  <p className="mt-2 text-sm leading-5 text-slate-400">{module.description}</p>
-                </button>
-              ))}
-            </div>
-          </section>
+                </div>
+              </section>
+
+              <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {[
+                  { label: "Usuario", value: user.fullName, detail: "Sesión actualmente activa", color: "emerald" },
+                  { label: "Correo", value: user.email, detail: "Cuenta de acceso", color: "sky" },
+                  { label: "Teléfono", value: user.phone || "No registrado", detail: "Información de contacto", color: "violet" },
+                ].map((item) => (
+                  <article key={item.label} className="rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/20 backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:border-white/20">
+                    <div className={`h-1.5 w-11 rounded-full ${item.color === "emerald" ? "bg-emerald-400" : item.color === "sky" ? "bg-sky-400" : "bg-violet-400"}`} />
+                    <p className="mt-4 text-sm font-medium text-slate-400">{item.label}</p>
+                    <p className="mt-1 truncate text-lg font-bold text-white">{item.value}</p>
+                    <p className="mt-2 text-xs text-slate-500">{item.detail}</p>
+                  </article>
+                ))}
+              </section>
+
+              <section className="mt-8 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/20 backdrop-blur-sm md:p-8">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-400">Módulos</p>
+                    <h3 className="mt-2 text-2xl font-black tracking-tight text-white">Accesos rápidos</h3>
+                    <p className="mt-2 text-sm text-slate-400">Elige el área que deseas consultar o administrar.</p>
+                  </div>
+                </div>
+
+                <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {modules.map((module) => (
+                    <button
+                      key={module.title}
+                      type="button"
+                      onClick={() => goTo(module.route)}
+                      className="group rounded-2xl border border-white/10 bg-slate-950/60 p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400/40 hover:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
+                    >
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl border ${module.accent}`}>
+                        <Icon name={module.icon} />
+                      </div>
+                      <div className="mt-5 flex items-center justify-between gap-3">
+                        <h4 className="font-bold text-white">{module.title}</h4>
+                        <span className="text-lg text-slate-500 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-emerald-300">→</span>
+                      </div>
+                      <p className="mt-2 text-sm leading-5 text-slate-400">{module.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
         </main>
       </div>
     </div>
