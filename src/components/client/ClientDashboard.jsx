@@ -1,29 +1,41 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
-
-const categorias = ["Todos", "Periféricos", "Componentes", "Laptops", "Monitores", "Accesorios"];
-
-// Reemplaza esto luego por datos reales de tu API de productos
-const productosDestacados = [
-  { id: 1, nombre: "Mouse Gamer RGB", precio: 24.99, categoria: "Periféricos" },
-  { id: 2, nombre: "Teclado Mecánico", precio: 39.99, categoria: "Periféricos" },
-  { id: 3, nombre: "Memoria RAM 16GB DDR4", precio: 45.5, categoria: "Componentes" },
-  { id: 4, nombre: "Tarjeta Gráfica RTX 4060", precio: 349.99, categoria: "Componentes" },
-  { id: 5, nombre: "Monitor 27'' 144Hz", precio: 219.99, categoria: "Monitores" },
-  { id: 6, nombre: "Laptop Gamer 16GB/512GB", precio: 899.99, categoria: "Laptops" },
-  { id: 7, nombre: "Audífonos Gamer", precio: 29.99, categoria: "Accesorios" },
-  { id: 8, nombre: "SSD NVMe 1TB", precio: 65.0, categoria: "Componentes" },
-];
+import api from "../../services/api";
 
 export default function ClientDashboard({ onBack }) {
   const { user, logout } = useContext(AuthContext);
   const [busqueda, setBusqueda] = useState("");
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
+  const [categoriasApi, setCategoriasApi] = useState([]);
+  const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
 
-  const productosFiltrados = productosDestacados.filter((p) => {
+  useEffect(() => {
+    const cargarCatalogo = async () => {
+      try {
+        const [categoriasRes, productosRes] = await Promise.all([
+          api.get("/categories?isActive=true"),
+          api.get("/products"),
+        ]);
+        setCategoriasApi(categoriasRes.data);
+        setProductos(productosRes.data);
+      } catch {
+        setError("No se pudo cargar el catálogo.");
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarCatalogo();
+  }, []);
+
+  const categorias = ["Todos", ...categoriasApi.map((c) => c.name)];
+  const nombreCategoria = (id) => categoriasApi.find((c) => c.id === id)?.name || "";
+
+  const productosFiltrados = productos.filter((p) => {
     const coincideCategoria =
-      categoriaActiva === "Todos" || p.categoria === categoriaActiva;
-    const coincideBusqueda = p.nombre
+      categoriaActiva === "Todos" || nombreCategoria(p.categoryId) === categoriaActiva;
+    const coincideBusqueda = p.name
       .toLowerCase()
       .includes(busqueda.toLowerCase());
     return coincideCategoria && coincideBusqueda;
@@ -147,11 +159,15 @@ export default function ClientDashboard({ onBack }) {
           <div className="mb-5 flex items-center justify-between">
             <h3 className="text-xl font-bold">Productos destacados</h3>
             <span className="text-sm text-slate-500">
-              {productosFiltrados.length} resultados
+              {cargando ? "Cargando..." : `${productosFiltrados.length} resultados`}
             </span>
           </div>
 
-          {productosFiltrados.length === 0 ? (
+          {error ? (
+            <p className="rounded-2xl border border-red-500/20 bg-red-500/10 p-8 text-center text-red-400">
+              {error}
+            </p>
+          ) : !cargando && productosFiltrados.length === 0 ? (
             <p className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
               No encontramos productos con ese criterio.
             </p>
@@ -162,14 +178,18 @@ export default function ClientDashboard({ onBack }) {
                   key={p.id}
                   className="group rounded-2xl border border-slate-800 bg-slate-900 p-4 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5"
                 >
-                  <div className="mb-3 flex h-32 items-center justify-center rounded-xl bg-slate-950 text-xs text-slate-600">
-                    Imagen
-                  </div>
-                  <h4 className="font-semibold">{p.nombre}</h4>
-                  <p className="mt-1 text-xs text-slate-500">{p.categoria}</p>
+                  {p.imageUrl ? (
+                    <img src={p.imageUrl} alt={p.name} className="mb-3 h-32 w-full rounded-xl bg-slate-950 object-cover" />
+                  ) : (
+                    <div className="mb-3 flex h-32 items-center justify-center rounded-xl bg-slate-950 text-xs text-slate-600">
+                      Imagen
+                    </div>
+                  )}
+                  <h4 className="font-semibold">{p.name}</h4>
+                  <p className="mt-1 text-xs text-slate-500">{nombreCategoria(p.categoryId)}</p>
                   <div className="mt-3 flex items-center justify-between">
                     <span className="font-bold text-emerald-500">
-                      ${p.precio.toFixed(2)}
+                      ${Number(p.price).toFixed(2)}
                     </span>
                     <button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-200 hover:bg-emerald-500">
                       Agregar

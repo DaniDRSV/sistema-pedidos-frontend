@@ -132,6 +132,17 @@ export default function AdminCategories() {
         }
     };
 
+    const handleDelete = async (category) => {
+        if (!window.confirm(`¿Eliminar definitivamente "${category.name}"?`)) return;
+        try {
+            setError("");
+            await api.delete(`/categories/${category.id}`);
+            fetchCategories();
+        } catch (err) {
+            setError(err.response?.data?.error || "Error al eliminar la categoría.");
+        }
+    };
+
     const closeConfirmModal = () => {
         if (confirmModal.loading) return;
         setConfirmModal({
@@ -308,6 +319,12 @@ export default function AdminCategories() {
                                                     Activar
                                                 </button>
                                             )}
+                                            <button
+                                                onClick={() => handleDelete(cat)}
+                                                className="ml-3 text-xs font-bold text-slate-400 hover:text-red-300"
+                                            >
+                                                Eliminar
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
