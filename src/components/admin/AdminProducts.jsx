@@ -198,6 +198,17 @@ export default function AdminProducts() {
         }
     };
 
+    const handleDelete = async (product) => {
+        if (!window.confirm(`¿Eliminar definitivamente "${product.name}"?`)) return;
+        try {
+            setError("");
+            await api.delete(`/products/${product.id}`);
+            fetchProducts();
+        } catch (err) {
+            setError(err.response?.data?.error || "Error al eliminar el producto.");
+        }
+    };
+
     const closeConfirmModal = () => {
         if (confirmModal.loading) return;
         setConfirmModal({
@@ -591,6 +602,12 @@ export default function AdminProducts() {
                                                             Activar
                                                         </button>
                                                     )}
+                                                    <button
+                                                        onClick={() => handleDelete(prod)}
+                                                        className="ml-3 text-xs font-bold text-slate-400 hover:text-red-300"
+                                                    >
+                                                        Eliminar
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
