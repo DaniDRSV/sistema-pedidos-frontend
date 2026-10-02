@@ -6,6 +6,7 @@ const routes = {
   dashboard: "#/dashboard",
   clients: "#/clientes",
   delivery: "#/repartidores",
+  preparation: "#/preparacion",
   adminProducts: "#/admin/productos",
   adminCategories: "#/admin/categorias",
 };
@@ -13,6 +14,12 @@ const routes = {
 function Icon({ name, className = "h-5 w-5" }) {
   const paths = {
     dashboard: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
+    preparation: (
+      <>
+        <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
+        <line x1="6" y1="17" x2="18" y2="17" />
+      </>
+    ),
     products: <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5-8-4.5M8 5.25l8 4.5" />,
     sales: <path d="M5 3h14v18H5V3Zm3 4h8M8 11h8M8 15h4" />,
     clients: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 11a3 3 0 1 0-1.1-5.8M17 14.5a4.8 4.8 0 0 1 3.5 4.5" /></>,
@@ -44,6 +51,7 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
 
   const menu = [
     { label: "Dashboard", icon: "dashboard", route: routes.dashboard },
+    { label: "Preparación", icon: "preparation", route: routes.preparation },
     { label: "Productos", icon: "products", route: routes.adminProducts },
     { label: "Ventas", icon: "sales" },
     { label: "Clientes", icon: "clients", route: routes.clients },
@@ -54,9 +62,17 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
 
   const modules = [
     {
+      title: "Preparación (Cocina)",
+      description: "Gestiona las comandas y el flujo de preparación en tiempo real.",
+      icon: "preparation",
+      route: routes.preparation,
+      accent: "text-amber-300 bg-amber-400/10 border-amber-400/15",
+    },
+    {
       title: "Productos",
       description: "Administra el catálogo y la disponibilidad de tus productos.",
       icon: "products",
+      route: routes.adminProducts,
       accent: "text-emerald-300 bg-emerald-400/10 border-emerald-400/15",
     },
     {
