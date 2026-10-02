@@ -6,6 +6,7 @@ import Register from './components/Register';
 import DashboardTemplate from './components/DashboardTemplate';
 import ClientDashboard from './components/client/ClientDashboard'; 
 import DeliveryDashboard from './components/DeliveryDashboard';
+import PreparationDashboard from './components/preparation/PreparationDashboard';
 
 const routes = {
   login: '#/login',
@@ -13,6 +14,7 @@ const routes = {
   dashboard: '#/dashboard',
   clients: '#/clientes',
   delivery: '#/repartidores',
+  preparation: '#/preparacion',
   adminProducts: '#/admin/productos',
   adminCategories: '#/admin/categorias',
 };
@@ -66,6 +68,14 @@ function MainApp() {
     return <DeliveryDashboard />;
   }
 
+  if (['CHEF', 'COCINA', 'PREPARADOR'].includes(role)) {
+    return <PreparationDashboard />;
+  }
+
+  if (currentRoute === routes.preparation) {
+    return <PreparationDashboard onBack={() => navigate(routes.dashboard)} />;
+  }
+
   if (currentRoute === routes.clients) {
     return <ClientDashboard onBack={() => navigate(routes.dashboard)} />;
   }
@@ -81,7 +91,6 @@ function MainApp() {
     />
   );
 }
-  
 
 export default function App() {
   return (
