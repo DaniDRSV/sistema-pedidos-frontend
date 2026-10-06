@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import AdminProducts from './admin/AdminProducts';
+import AdminCouriers from "./admin/AdminCouriers";
 
 const routes = {
   dashboard: "#/dashboard",
@@ -23,7 +24,7 @@ function Icon({ name, className = "h-5 w-5" }) {
     products: <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5-8-4.5M8 5.25l8 4.5" />,
     sales: <path d="M5 3h14v18H5V3Zm3 4h8M8 11h8M8 15h4" />,
     clients: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 11a3 3 0 1 0-1.1-5.8M17 14.5a4.8 4.8 0 0 1 3.5 4.5" /></>,
-    delivery: <><path d="M3 7h11v10H3V7Zm11 4h3l3 3v3h-6v-6Z" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" /></>,
+    delivery: <><circle cx="6.5" cy="17.5" r="3" /><circle cx="17.5" cy="17.5" r="3" /><path d="M6.5 17.5 10 10h4l3.5 7.5M10 10l2.5 7.5M9 6.5a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z" /><path d="m11 10-2-2.5H6.5" /></>,
     users: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08A1.7 1.7 0 0 0 10.66 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.04-1.56v-.08h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06A1.7 1.7 0 0 0 19.4 9.92c.2.65.8 1.04 1.48 1.04h.08v3h-.08c-.68 0-1.28.4-1.48 1.04Z" /></>,
   };
@@ -51,7 +52,7 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
 
   const menu = [
     { label: "Dashboard", icon: "dashboard", route: routes.dashboard },
-    { label: "Preparación", icon: "preparation", route: routes.preparation },
+    { label: "Entregas", icon: "delivery", route: routes.preparation },
     { label: "Productos", icon: "products", route: routes.adminProducts },
     { label: "Ventas", icon: "sales" },
     { label: "Clientes", icon: "clients", route: routes.clients },
@@ -62,9 +63,9 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
 
   const modules = [
     {
-      title: "Preparación (Cocina)",
-      description: "Gestiona las comandas y el flujo de preparación en tiempo real.",
-      icon: "preparation",
+      title: "Centro de entregas",
+      description: "Asigna pedidos a repartidores y sigue cada entrega en tiempo real.",
+      icon: "delivery",
       route: routes.preparation,
       accent: "text-amber-300 bg-amber-400/10 border-amber-400/15",
     },
@@ -209,6 +210,8 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
           
           {currentRoute === routes.adminProducts ? (
             <AdminProducts />
+          ) : currentRoute === routes.delivery ? (
+            <AdminCouriers />
           ): (
             <>
               {/* CONTENIDO POR DEFECTO (RESUMEN GENERAL) */}

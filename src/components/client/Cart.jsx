@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../services/api";
 import { calculateCart, money } from "../../utils/cartTotals";
+import { DeliveryStatus, PaymentMethod, saveOrderWorkflow } from "../../services/deliveryWorkflow";
 
 export default function Cart({ cart, onClose, onOrderCreated }) {
   const [address, setAddress] = useState("");
@@ -8,6 +9,7 @@ export default function Cart({ cart, onClose, onOrderCreated }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [order, setOrder] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState(PaymentMethod.CASH_ON_DELIVERY);
 
   const { lines, subtotal, tax, total } = calculateCart(cart.items);
 
@@ -31,9 +33,15 @@ export default function Cart({ cart, onClose, onOrderCreated }) {
         items: cart.items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
         address: address.trim(),
         notes: notes.trim() || undefined,
+        paymentMethod,
       });
 
       setOrder(response.data);
+      saveOrderWorkflow(response.data, {
+        status: DeliveryStatus.CREATED,
+        paymentMethod,
+        createdAt: new Date().toISOString(),
+      });
       cart.clearCart();
       onOrderCreated?.();
     } catch (err) {
@@ -82,9 +90,8 @@ export default function Cart({ cart, onClose, onOrderCreated }) {
             <p className="mt-2 text-sm text-slate-300">
               Número de pedido: <span className="font-bold">{order.orderNumber}</span>
             </p>
-            <p className="mt-1 text-sm text-slate-300">
-              Total a pagar en efectivo: <span className="font-bold">{money(order.total)}</span>
-            </p>
+            <p className="mt-1 text-sm text-slate-300">El pedido quedó creado y será confirmado para entrega.</p>
+            <p className="mt-1 text-sm text-slate-300">{paymentMethod === PaymentMethod.CASH_ON_DELIVERY ? "Total a pagar al repartidor: " : "Total pagado: "}<span className="font-bold">{money(order.total)}</span></p>
           </div>
         ) : cart.items.length === 0 ? (
           <p className="py-10 text-center text-slate-400">Tu carrito está vacío.</p>
@@ -166,7 +173,21 @@ export default function Cart({ cart, onClose, onOrderCreated }) {
                 placeholder="Notas para el pedido (opcional)"
                 className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
               />
-              <p className="text-xs text-slate-400">Método de pago: efectivo contra entrega.</p>
+              <fieldset>
+                <legend className="mb-2 text-xs font-bold text-slate-300">Método de pago</legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <label className={`cursor-pointer rounded-xl border p-3 text-sm transition ${paymentMethod === PaymentMethod.CARD ? "border-violet-400 bg-violet-500/10" : "border-slate-700 bg-slate-950"}`}>
+                    <input className="mr-2" type="radio" name="paymentMethod" checked={paymentMethod === PaymentMethod.CARD} onChange={() => setPaymentMethod(PaymentMethod.CARD)} />
+                    Pago digital
+                    <span className="mt-1 block pl-5 text-xs text-slate-400">Se confirma como pagado.</span>
+                  </label>
+                  <label className={`cursor-pointer rounded-xl border p-3 text-sm transition ${paymentMethod === PaymentMethod.CASH_ON_DELIVERY ? "border-amber-400 bg-amber-500/10" : "border-slate-700 bg-slate-950"}`}>
+                    <input className="mr-2" type="radio" name="paymentMethod" checked={paymentMethod === PaymentMethod.CASH_ON_DELIVERY} onChange={() => setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY)} />
+                    Contra entrega
+                    <span className="mt-1 block pl-5 text-xs text-slate-400">Paga al recibir el pedido.</span>
+                  </label>
+                </div>
+              </fieldset>
             </div>
           </>
         )}
