@@ -1,29 +1,46 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
-
-const categorias = ["Todos", "Periféricos", "Componentes", "Laptops", "Monitores", "Accesorios"];
-
-// Reemplaza esto luego por datos reales de tu API de productos
-const productosDestacados = [
-  { id: 1, nombre: "Mouse Gamer RGB", precio: 24.99, categoria: "Periféricos" },
-  { id: 2, nombre: "Teclado Mecánico", precio: 39.99, categoria: "Periféricos" },
-  { id: 3, nombre: "Memoria RAM 16GB DDR4", precio: 45.5, categoria: "Componentes" },
-  { id: 4, nombre: "Tarjeta Gráfica RTX 4060", precio: 349.99, categoria: "Componentes" },
-  { id: 5, nombre: "Monitor 27'' 144Hz", precio: 219.99, categoria: "Monitores" },
-  { id: 6, nombre: "Laptop Gamer 16GB/512GB", precio: 899.99, categoria: "Laptops" },
-  { id: 7, nombre: "Audífonos Gamer", precio: 29.99, categoria: "Accesorios" },
-  { id: 8, nombre: "SSD NVMe 1TB", precio: 65.0, categoria: "Componentes" },
-];
+import api from "../../services/api";
+import useCart from "../../hooks/useCart";
+import Cart from "./Cart";
 
 export default function ClientDashboard({ onBack }) {
   const { user, logout } = useContext(AuthContext);
   const [busqueda, setBusqueda] = useState("");
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
+  const [categoriasApi, setCategoriasApi] = useState([]);
+  const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+  const [recargar, setRecargar] = useState(0);
+  const [carritoAbierto, setCarritoAbierto] = useState(false);
+  const cart = useCart(user?.id);
 
-  const productosFiltrados = productosDestacados.filter((p) => {
+  useEffect(() => {
+    const cargarCatalogo = async () => {
+      try {
+        const [categoriasRes, productosRes] = await Promise.all([
+          api.get("/categories?isActive=true"),
+          api.get("/products"),
+        ]);
+        setCategoriasApi(categoriasRes.data);
+        setProductos(productosRes.data);
+      } catch {
+        setError("No se pudo cargar el catálogo.");
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarCatalogo();
+  }, [recargar]);
+
+  const categorias = ["Todos", ...categoriasApi.map((c) => c.name)];
+  const nombreCategoria = (id) => categoriasApi.find((c) => c.id === id)?.name || "";
+
+  const productosFiltrados = productos.filter((p) => {
     const coincideCategoria =
-      categoriaActiva === "Todos" || p.categoria === categoriaActiva;
-    const coincideBusqueda = p.nombre
+      categoriaActiva === "Todos" || nombreCategoria(p.categoryId) === categoriaActiva;
+    const coincideBusqueda = p.name
       .toLowerCase()
       .includes(busqueda.toLowerCase());
     return coincideCategoria && coincideBusqueda;
@@ -64,7 +81,11 @@ export default function ClientDashboard({ onBack }) {
             <span className="hidden text-sm text-slate-400 sm:block">
               Hola, {user?.fullName?.split(" ")[0]}
             </span>
+
+            {/* Ícon car*/}
             <button
+              type="button"
+              onClick={() => setCarritoAbierto(true)}
               className="relative rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
               aria-label="Carrito"
             >
@@ -73,10 +94,11 @@ export default function ClientDashboard({ onBack }) {
                 <circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
               </svg>
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold">
-                0
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold">
+                {cart.count}
               </span>
             </button>
+
             <button
               onClick={logout}
               className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500 hover:text-white"
@@ -86,7 +108,7 @@ export default function ClientDashboard({ onBack }) {
           </div>
         </div>
 
-        {/* Categorías */}
+        {/* Categories */}
         <nav className="border-t border-slate-800 bg-slate-900/60">
           <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-6 py-3">
             {categorias.map((cat) => (
@@ -127,7 +149,7 @@ export default function ClientDashboard({ onBack }) {
           </div>
         </div>
 
-        {/* Banners secundarios */}
+        {/* Banners 2 */}
         <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
           {["Combos", "Bebidas", "Postres", "Novedades"].map((titulo) => (
             <button
@@ -142,16 +164,20 @@ export default function ClientDashboard({ onBack }) {
           ))}
         </div>
 
-        {/* Productos */}
+        {/* Products */}
         <section className="mt-10">
           <div className="mb-5 flex items-center justify-between">
             <h3 className="text-xl font-bold">Productos destacados</h3>
             <span className="text-sm text-slate-500">
-              {productosFiltrados.length} resultados
+              {cargando ? "Cargando..." : `${productosFiltrados.length} resultados`}
             </span>
           </div>
 
-          {productosFiltrados.length === 0 ? (
+          {error ? (
+            <p className="rounded-2xl border border-red-500/20 bg-red-500/10 p-8 text-center text-red-400">
+              {error}
+            </p>
+          ) : !cargando && productosFiltrados.length === 0 ? (
             <p className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
               No encontramos productos con ese criterio.
             </p>
@@ -162,18 +188,29 @@ export default function ClientDashboard({ onBack }) {
                   key={p.id}
                   className="group rounded-2xl border border-slate-800 bg-slate-900 p-4 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5"
                 >
-                  <div className="mb-3 flex h-32 items-center justify-center rounded-xl bg-slate-950 text-xs text-slate-600">
-                    Imagen
-                  </div>
-                  <h4 className="font-semibold">{p.nombre}</h4>
-                  <p className="mt-1 text-xs text-slate-500">{p.categoria}</p>
+                  {p.imageUrl ? (
+                    <img src={p.imageUrl} alt={p.name} className="mb-3 h-32 w-full rounded-xl bg-slate-950 object-cover" />
+                  ) : (
+                    <div className="mb-3 flex h-32 items-center justify-center rounded-xl bg-slate-950 text-xs text-slate-600">
+                      Imagen
+                    </div>
+                  )}
+                  <h4 className="font-semibold">{p.name}</h4>
+                  <p className="mt-1 text-xs text-slate-500">{nombreCategoria(p.categoryId)}</p>
                   <div className="mt-3 flex items-center justify-between">
                     <span className="font-bold text-emerald-500">
-                      ${p.precio.toFixed(2)}
+                      ${Number(p.price).toFixed(2)}
                     </span>
-                    <button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-200 hover:bg-emerald-500">
-                      Agregar
-                    </button>
+
+                    {/* button: adds to cart and disables due to out-of-stock status*/}
+                    <button
+                      type="button"
+                      onClick={() => cart.addItem(p)}
+                      disabled={p.stock <= 0}
+                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:scale-110 hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/40 active:scale-90 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:shadow-none disabled:hover:scale-100"
+                    >
+                    {p.stock <= 0 ? "Agotado" : "Agregar"}
+                </button>
                   </div>
                 </div>
               ))}
@@ -181,6 +218,15 @@ export default function ClientDashboard({ onBack }) {
           )}
         </section>
       </main>
+
+      {/* cart store */}
+      {carritoAbierto && (
+        <Cart
+          cart={cart}
+          onClose={() => setCarritoAbierto(false)}
+          onOrderCreated={() => setRecargar((n) => n + 1)}
+        />
+      )}
     </div>
   );
 }

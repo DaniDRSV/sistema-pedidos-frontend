@@ -1,22 +1,33 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import AdminProducts from './admin/AdminProducts';
+import AdminCouriers from "./admin/AdminCouriers";
+import AdminClients from "./admin/AdminClients";
+import AdminUsers from "./admin/AdminUsers";
+import PreparationDashboard from "./preparation/PreparationDashboard";
 
 const routes = {
   dashboard: "#/dashboard",
-  clients: "#/clientes",
-  delivery: "#/repartidores",
+  deliveries: "#/admin/entregas",
   adminProducts: "#/admin/productos",
-  adminCategories: "#/admin/categorias",
+  clients: "#/admin/clientes",
+  couriers: "#/admin/repartidores",
+  users: "#/admin/usuarios",
 };
 
 function Icon({ name, className = "h-5 w-5" }) {
   const paths = {
     dashboard: <path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" />,
+    preparation: (
+      <>
+        <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
+        <line x1="6" y1="17" x2="18" y2="17" />
+      </>
+    ),
     products: <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5-8-4.5M8 5.25l8 4.5" />,
     sales: <path d="M5 3h14v18H5V3Zm3 4h8M8 11h8M8 15h4" />,
     clients: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 11a3 3 0 1 0-1.1-5.8M17 14.5a4.8 4.8 0 0 1 3.5 4.5" /></>,
-    delivery: <><path d="M3 7h11v10H3V7Zm11 4h3l3 3v3h-6v-6Z" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" /></>,
+    delivery: <><circle cx="6.5" cy="17.5" r="3" /><circle cx="17.5" cy="17.5" r="3" /><path d="M6.5 17.5 10 10h4l3.5 7.5M10 10l2.5 7.5M9 6.5a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z" /><path d="m11 10-2-2.5H6.5" /></>,
     users: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08A1.7 1.7 0 0 0 10.66 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.04-1.56v-.08h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06A1.7 1.7 0 0 0 19.4 9.92c.2.65.8 1.04 1.48 1.04h.08v3h-.08c-.68 0-1.28.4-1.48 1.04Z" /></>,
   };
@@ -44,19 +55,28 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
 
   const menu = [
     { label: "Dashboard", icon: "dashboard", route: routes.dashboard },
+    { label: "Entregas", icon: "delivery", route: routes.deliveries },
     { label: "Productos", icon: "products", route: routes.adminProducts },
     { label: "Ventas", icon: "sales" },
     { label: "Clientes", icon: "clients", route: routes.clients },
-    { label: "Repartidores", icon: "delivery", route: routes.delivery },
-    { label: "Usuarios", icon: "users" },
+    { label: "Repartidores", icon: "delivery", route: routes.couriers },
+    { label: "Usuarios", icon: "users", route: routes.users },
     { label: "Configuración", icon: "settings" },
   ];
 
   const modules = [
     {
+      title: "Centro de entregas",
+      description: "Asigna pedidos a repartidores y sigue cada entrega en tiempo real.",
+      icon: "delivery",
+      route: routes.deliveries,
+      accent: "text-amber-300 bg-amber-400/10 border-amber-400/15",
+    },
+    {
       title: "Productos",
       description: "Administra el catálogo y la disponibilidad de tus productos.",
       icon: "products",
+      route: routes.adminProducts,
       accent: "text-emerald-300 bg-emerald-400/10 border-emerald-400/15",
     },
     {
@@ -67,17 +87,24 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
     },
     {
       title: "Clientes",
-      description: "Consulta la experiencia disponible para tus clientes.",
+      description: "Consulta la actividad de tus clientes y administra sus cuentas.",
       icon: "clients",
       route: routes.clients,
       accent: "text-violet-300 bg-violet-400/10 border-violet-400/15",
     },
     {
       title: "Repartidores",
-      description: "Consulta la jornada y las entregas de los repartidores.",
+      description: "Registra repartidores y controla su disponibilidad.",
       icon: "delivery",
-      route: routes.delivery,
+      route: routes.couriers,
       accent: "text-amber-300 bg-amber-400/10 border-amber-400/15",
+    },
+    {
+      title: "Usuarios",
+      description: "Administra las cuentas y los roles de acceso al sistema.",
+      icon: "users",
+      route: routes.users,
+      accent: "text-teal-300 bg-teal-400/10 border-teal-400/15",
     },
   ];
 
@@ -193,7 +220,15 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
           
           {currentRoute === routes.adminProducts ? (
             <AdminProducts />
-          ): (
+          ) : currentRoute === routes.deliveries ? (
+            <PreparationDashboard />
+          ) : currentRoute === routes.clients ? (
+            <AdminClients onNavigate={onNavigate} />
+          ) : currentRoute === routes.couriers ? (
+            <AdminCouriers onNavigate={onNavigate} />
+          ) : currentRoute === routes.users ? (
+            <AdminUsers />
+          ) : (
             <>
               {/* CONTENIDO POR DEFECTO (RESUMEN GENERAL) */}
               <section className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-700 via-emerald-600 to-slate-900 p-7 shadow-2xl shadow-emerald-950/30 md:p-10">
@@ -240,7 +275,7 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
                   </div>
                 </div>
 
-                <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {modules.map((module) => (
                     <button
                       key={module.title}
