@@ -80,10 +80,6 @@ function MainApp() {
     return <ClientDashboard onBack={() => navigate(routes.dashboard)} />;
   }
 
-  if (currentRoute === routes.delivery) {
-    return <DeliveryDashboard onBack={() => navigate(routes.dashboard)} />;
-  }
-
   return (
     <DashboardTemplate
       currentRoute={currentRoute}
