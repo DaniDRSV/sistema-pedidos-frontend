@@ -2,14 +2,17 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import AdminProducts from './admin/AdminProducts';
 import AdminCouriers from "./admin/AdminCouriers";
+import AdminClients from "./admin/AdminClients";
+import AdminUsers from "./admin/AdminUsers";
+import PreparationDashboard from "./preparation/PreparationDashboard";
 
 const routes = {
   dashboard: "#/dashboard",
-  clients: "#/clientes",
-  delivery: "#/repartidores",
-  preparation: "#/preparacion",
+  deliveries: "#/admin/entregas",
   adminProducts: "#/admin/productos",
-  adminCategories: "#/admin/categorias",
+  clients: "#/admin/clientes",
+  couriers: "#/admin/repartidores",
+  users: "#/admin/usuarios",
 };
 
 function Icon({ name, className = "h-5 w-5" }) {
@@ -52,12 +55,12 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
 
   const menu = [
     { label: "Dashboard", icon: "dashboard", route: routes.dashboard },
-    { label: "Entregas", icon: "delivery", route: routes.preparation },
+    { label: "Entregas", icon: "delivery", route: routes.deliveries },
     { label: "Productos", icon: "products", route: routes.adminProducts },
     { label: "Ventas", icon: "sales" },
     { label: "Clientes", icon: "clients", route: routes.clients },
-    { label: "Repartidores", icon: "delivery", route: routes.delivery },
-    { label: "Usuarios", icon: "users" },
+    { label: "Repartidores", icon: "delivery", route: routes.couriers },
+    { label: "Usuarios", icon: "users", route: routes.users },
     { label: "Configuración", icon: "settings" },
   ];
 
@@ -66,7 +69,7 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
       title: "Centro de entregas",
       description: "Asigna pedidos a repartidores y sigue cada entrega en tiempo real.",
       icon: "delivery",
-      route: routes.preparation,
+      route: routes.deliveries,
       accent: "text-amber-300 bg-amber-400/10 border-amber-400/15",
     },
     {
@@ -84,17 +87,24 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
     },
     {
       title: "Clientes",
-      description: "Consulta la experiencia disponible para tus clientes.",
+      description: "Consulta la actividad de tus clientes y administra sus cuentas.",
       icon: "clients",
       route: routes.clients,
       accent: "text-violet-300 bg-violet-400/10 border-violet-400/15",
     },
     {
       title: "Repartidores",
-      description: "Consulta la jornada y las entregas de los repartidores.",
+      description: "Registra repartidores y controla su disponibilidad.",
       icon: "delivery",
-      route: routes.delivery,
+      route: routes.couriers,
       accent: "text-amber-300 bg-amber-400/10 border-amber-400/15",
+    },
+    {
+      title: "Usuarios",
+      description: "Administra las cuentas y los roles de acceso al sistema.",
+      icon: "users",
+      route: routes.users,
+      accent: "text-teal-300 bg-teal-400/10 border-teal-400/15",
     },
   ];
 
@@ -210,9 +220,15 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
           
           {currentRoute === routes.adminProducts ? (
             <AdminProducts />
-          ) : currentRoute === routes.delivery ? (
-            <AdminCouriers />
-          ): (
+          ) : currentRoute === routes.deliveries ? (
+            <PreparationDashboard />
+          ) : currentRoute === routes.clients ? (
+            <AdminClients onNavigate={onNavigate} />
+          ) : currentRoute === routes.couriers ? (
+            <AdminCouriers onNavigate={onNavigate} />
+          ) : currentRoute === routes.users ? (
+            <AdminUsers />
+          ) : (
             <>
               {/* CONTENIDO POR DEFECTO (RESUMEN GENERAL) */}
               <section className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-700 via-emerald-600 to-slate-900 p-7 shadow-2xl shadow-emerald-950/30 md:p-10">
@@ -259,7 +275,7 @@ export default function DashboardTemplate({ currentRoute, onNavigate }) {
                   </div>
                 </div>
 
-                <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {modules.map((module) => (
                     <button
                       key={module.title}

@@ -6,23 +6,21 @@ import Register from './components/Register';
 import DashboardTemplate from './components/DashboardTemplate';
 import ClientDashboard from './components/client/ClientDashboard'; 
 import DeliveryDashboard from './components/DeliveryDashboard';
-import PreparationDashboard from './components/preparation/PreparationDashboard';
 
 const routes = {
   login: '#/login',
   register: '#/register',
   dashboard: '#/dashboard',
-  clients: '#/clientes',
-  delivery: '#/repartidores',
-  preparation: '#/preparacion',
-  adminProducts: '#/admin/productos',
-  adminCategories: '#/admin/categorias',
+  clients: '#/admin/clientes',
+  couriers: '#/admin/repartidores',
+  clientView: '#/vista/cliente',
+  courierView: '#/vista/repartidor/',
 };
 
 const getCurrentRoute = () => window.location.hash || routes.dashboard;
 
 function MainApp() {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const [currentRoute, setCurrentRoute] = useState(getCurrentRoute);
 
   useEffect(() => {
@@ -68,12 +66,27 @@ function MainApp() {
     return <DeliveryDashboard />;
   }
 
-  if (currentRoute === routes.preparation) {
-    return <PreparationDashboard onBack={() => navigate(routes.dashboard)} />;
+  if (role !== 'ADMIN') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-center text-white">
+        <div>
+          <h1 className="text-2xl font-black">Sin acceso</h1>
+          <p className="mt-2 text-sm text-slate-400">Tu cuenta no tiene permisos para este panel.</p>
+          <button type="button" onClick={logout} className="mt-6 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold hover:bg-emerald-500">
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  if (currentRoute === routes.clients) {
-    return <ClientDashboard onBack={() => navigate(routes.dashboard)} />;
+  if (currentRoute === routes.clientView) {
+    return <ClientDashboard onBack={() => navigate(routes.clients)} />;
+  }
+
+  if (currentRoute.startsWith(routes.courierView)) {
+    const courierId = currentRoute.slice(routes.courierView.length);
+    return <DeliveryDashboard key={courierId} courierId={courierId} onBack={() => navigate(routes.couriers)} />;
   }
 
   return (

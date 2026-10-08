@@ -10,8 +10,10 @@ const statusStyles = {
   [OrderStatus.CANCELLED]: "bg-rose-100 text-rose-700 border-rose-200",
 };
 
-export default function DeliveryDashboard({ onBack }) {
+export default function DeliveryDashboard({ onBack, courierId }) {
   const { user, logout } = useContext(AuthContext);
+  const isPreview = Boolean(courierId);
+  const [courier, setCourier] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
@@ -19,15 +21,24 @@ export default function DeliveryDashboard({ onBack }) {
 
   const loadOrders = useCallback(async () => {
     try {
-      const response = await api.get("/deliveries/orders/me");
-      setOrders(response.data);
+      if (courierId) {
+        const [courierResponse, ordersResponse] = await Promise.all([
+          api.get(`/users/${courierId}`),
+          api.get(`/users/${courierId}/orders`),
+        ]);
+        setCourier(courierResponse.data);
+        setOrders(ordersResponse.data);
+      } else {
+        const response = await api.get("/deliveries/orders/me");
+        setOrders(response.data);
+      }
       setError("");
     } catch (err) {
       setError(getErrorMessage(err, "No se pudieron cargar tus entregas."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [courierId]);
 
   useEffect(() => {
     const firstLoad = window.setTimeout(loadOrders, 0);
@@ -61,8 +72,9 @@ export default function DeliveryDashboard({ onBack }) {
   const activeOrders = orders.filter((order) => !isFinalStatus(order.status));
   const onTheWay = orders.filter((order) => order.status === OrderStatus.ON_THE_WAY).length;
   const delivered = orders.filter((order) => order.status === OrderStatus.DELIVERED).length;
-  const available = activeOrders.length === 0;
-  const name = user?.fullName?.split(" ")[0] || "Repartidor";
+  const available = isPreview ? Boolean(courier?.available) : activeOrders.length === 0;
+  const profile = isPreview ? courier : user;
+  const name = profile?.fullName?.split(" ")[0] || "Repartidor";
 
   return (
     <div className="min-h-screen bg-[#f4f7f5] text-slate-900">
@@ -74,9 +86,15 @@ export default function DeliveryDashboard({ onBack }) {
                 ← Panel administrativo
               </button>
             )}
-            <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-600">Panel de entregas</p>
+            <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-600">
+              {isPreview ? "Vista previa del repartidor" : "Panel de entregas"}
+            </p>
             <h1 className="mt-1 text-2xl font-black">Hola, {name} 👋</h1>
-            <p className="mt-1 text-sm text-slate-500">Aquí aparecen los pedidos que el administrador te asigna.</p>
+            <p className="mt-1 text-sm text-slate-500">
+              {isPreview
+                ? "Así ve el repartidor sus entregas. Esta vista es solo de consulta."
+                : "Aquí aparecen los pedidos que el administrador te asigna."}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={loadOrders} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
@@ -84,11 +102,13 @@ export default function DeliveryDashboard({ onBack }) {
             </button>
             <span className={`rounded-full border px-3 py-2 text-xs font-bold ${available ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
               <span className={`mr-1.5 inline-block h-2 w-2 rounded-full ${available ? "bg-emerald-500" : "bg-amber-500"}`} />
-              {available ? "Disponible" : "Con entregas activas"}
+              {available ? "Disponible" : activeOrders.length > 0 ? "Con entregas activas" : "No disponible"}
             </span>
-            <button type="button" onClick={logout} className="rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50">
-              Salir
-            </button>
+            {!isPreview && (
+              <button type="button" onClick={logout} className="rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50">
+                Salir
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -125,6 +145,7 @@ export default function DeliveryDashboard({ onBack }) {
                   key={order.id}
                   order={order}
                   busy={busyId === order.id}
+                  readOnly={isPreview}
                   onStart={() => startDelivery(order)}
                   onComplete={() => completeDelivery(order)}
                   onReject={() => rejectDelivery(order)}
@@ -147,7 +168,7 @@ function Stat({ label, value, color }) {
   );
 }
 
-function DeliveryCard({ order, busy, onStart, onComplete, onReject }) {
+function DeliveryCard({ order, busy, readOnly, onStart, onComplete, onReject }) {
   const isCash = isCashOnDelivery(order);
   const pendingPayment = isCash && order.paymentStatus !== "PAID";
 
@@ -176,7 +197,7 @@ function DeliveryCard({ order, busy, onStart, onComplete, onReject }) {
         </div>
 
         <div className="flex shrink-0 flex-wrap content-start gap-2">
-          {order.status === OrderStatus.PREPARING && (
+          {!readOnly && order.status === OrderStatus.PREPARING && (
             <>
               <button type="button" disabled={busy} onClick={onStart} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-500 disabled:opacity-50">
                 Iniciar ruta
@@ -186,7 +207,7 @@ function DeliveryCard({ order, busy, onStart, onComplete, onReject }) {
               </button>
             </>
           )}
-          {order.status === OrderStatus.ON_THE_WAY && (
+          {!readOnly && order.status === OrderStatus.ON_THE_WAY && (
             <button type="button" disabled={busy} onClick={onComplete} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50">
               Confirmar entrega
             </button>

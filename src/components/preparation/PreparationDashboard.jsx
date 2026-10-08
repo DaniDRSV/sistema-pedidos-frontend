@@ -7,16 +7,9 @@ import {
   isFinalStatus,
   money,
   statusLabels,
+  statusStyles,
 } from "../../utils/orderStatus";
-
-const statusStyles = {
-  [OrderStatus.CREATED]: "bg-sky-500/15 text-sky-300 border-sky-400/30",
-  [OrderStatus.PAID]: "bg-violet-500/15 text-violet-300 border-violet-400/30",
-  [OrderStatus.PREPARING]: "bg-amber-500/15 text-amber-300 border-amber-400/30",
-  [OrderStatus.ON_THE_WAY]: "bg-blue-500/15 text-blue-300 border-blue-400/30",
-  [OrderStatus.DELIVERED]: "bg-emerald-500/15 text-emerald-300 border-emerald-400/30",
-  [OrderStatus.CANCELLED]: "bg-rose-500/15 text-rose-300 border-rose-400/30",
-};
+import AdminPageHeader from "../admin/AdminPageHeader";
 
 const filterOptions = ["ALL", ...Object.values(OrderStatus)];
 
@@ -42,7 +35,7 @@ function PaymentBadge({ method }) {
   );
 }
 
-export default function PreparationDashboard({ onBack }) {
+export default function PreparationDashboard() {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,89 +123,74 @@ export default function PreparationDashboard({ onBack }) {
   const selectedOrder = orders.find((order) => order.id === selectedId);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400" />
-      <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-900/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            {onBack && (
-              <button type="button" onClick={onBack} className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700">
-                ←
+    <div>
+      <AdminPageHeader
+        title="Centro de entregas"
+        description={`Asigna repartidores y gestiona el estado de los pedidos${lastUpdated ? ` · ${lastUpdated.toLocaleTimeString()}` : ""}`}
+      >
+        <button type="button" onClick={loadData} className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:bg-slate-800">
+          ↻ Actualizar
+        </button>
+      </AdminPageHeader>
+
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric label="Pendientes" value={(counters[OrderStatus.CREATED] || 0) + (counters[OrderStatus.PAID] || 0)} color="text-sky-300" />
+        <Metric label="En preparación" value={counters[OrderStatus.PREPARING] || 0} color="text-amber-300" />
+        <Metric label="En camino" value={counters[OrderStatus.ON_THE_WAY] || 0} color="text-blue-300" />
+        <Metric label="Repartidores disponibles" value={availableCouriers.length} color="text-emerald-300" />
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${filter === value ? "bg-cyan-500 text-slate-950" : "bg-slate-800 text-slate-400 hover:text-white"}`}
+              >
+                {value === "ALL" ? "Todos" : statusLabels[value]}
+                {value !== "ALL" && <span className="ml-1.5 opacity-70">{counters[value] || 0}</span>}
               </button>
-            )}
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 text-xl shadow-lg shadow-cyan-950/40">🚚</div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight text-white">Centro de entregas</h1>
-              <p className="text-xs text-slate-400">
-                Gestiona el estado de los pedidos{lastUpdated ? ` · ${lastUpdated.toLocaleTimeString()}` : ""}
-              </p>
-            </div>
-          </div>
-          <button type="button" onClick={loadData} className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-bold text-cyan-200 transition hover:bg-cyan-400/20">
-            ↻ Actualizar
-          </button>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric label="Pendientes" value={(counters[OrderStatus.CREATED] || 0) + (counters[OrderStatus.PAID] || 0)} color="text-sky-300" />
-          <Metric label="En preparación" value={counters[OrderStatus.PREPARING] || 0} color="text-amber-300" />
-          <Metric label="En camino" value={counters[OrderStatus.ON_THE_WAY] || 0} color="text-blue-300" />
-          <Metric label="Repartidores disponibles" value={availableCouriers.length} color="text-emerald-300" />
-        </section>
-
-        <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap gap-2">
-              {filterOptions.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setFilter(value)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${filter === value ? "bg-cyan-500 text-slate-950" : "bg-slate-800 text-slate-400 hover:text-white"}`}
-                >
-                  {value === "ALL" ? "Todos" : statusLabels[value]}
-                  {value !== "ALL" && <span className="ml-1.5 opacity-70">{counters[value] || 0}</span>}
-                </button>
-              ))}
-            </div>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar pedido, cliente o repartidor"
-              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-cyan-400 lg:w-72"
-            />
-          </div>
-        </section>
-
-        {error && <div className="mt-5 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">{error}</div>}
-
-        {loading ? (
-          <p className="py-16 text-center text-slate-400">Cargando pedidos…</p>
-        ) : filteredOrders.length === 0 ? (
-          <p className="py-16 text-center text-slate-500">No hay pedidos en este estado.</p>
-        ) : (
-          <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                busy={busyId === order.id}
-                onOpen={() => setSelectedId(order.id)}
-                onChangeStatus={(status) => changeStatus(order, status)}
-                onCancel={() => cancelOrder(order)}
-              />
             ))}
-          </section>
-        )}
-      </main>
+          </div>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar pedido, cliente o repartidor"
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-cyan-400 lg:w-72"
+          />
+        </div>
+      </section>
+
+      {error && <div className="mt-5 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">{error}</div>}
+
+      {loading ? (
+        <p className="py-16 text-center text-slate-400">Cargando pedidos…</p>
+      ) : filteredOrders.length === 0 ? (
+        <p className="py-16 text-center text-slate-500">No hay pedidos en este estado.</p>
+      ) : (
+        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filteredOrders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              busy={busyId === order.id}
+              onOpen={() => setSelectedId(order.id)}
+              onChangeStatus={(status) => changeStatus(order, status)}
+              onCancel={() => cancelOrder(order)}
+            />
+          ))}
+        </section>
+      )}
 
       {selectedOrder && (
         <OrderModal
           order={selectedOrder}
           couriers={couriers}
           busy={busyId === selectedOrder.id}
+          error={error}
           onClose={() => setSelectedId(null)}
           onChangeStatus={(status) => changeStatus(selectedOrder, status)}
           onAssign={(deliveryId) => assignCourier(selectedOrder, deliveryId)}
@@ -290,7 +268,7 @@ function OrderCard({ order, busy, onOpen, onChangeStatus, onCancel }) {
   );
 }
 
-function OrderModal({ order, couriers, busy, onClose, onChangeStatus, onAssign, onUnassign, onCancel }) {
+function OrderModal({ order, couriers, busy, error, onClose, onChangeStatus, onAssign, onUnassign, onCancel }) {
   const [courierId, setCourierId] = useState("");
   const canUnassign = order.deliveryId && order.status === OrderStatus.PREPARING;
 
@@ -344,7 +322,7 @@ function OrderModal({ order, couriers, busy, onClose, onChangeStatus, onAssign, 
                 <option value="">Selecciona un repartidor</option>
                 {couriers.map((courier) => (
                   <option key={courier.id} value={courier.id}>
-                    {courier.fullName} · {courier.available ? "disponible" : `${courier.activeOrders} pedido(s) activos`}
+                    {courier.fullName} · {courier.available ? "disponible" : courier.activeOrders > 0 ? `${courier.activeOrders} pedido(s) activos` : "no disponible"}
                   </option>
                 ))}
               </select>
@@ -355,6 +333,8 @@ function OrderModal({ order, couriers, busy, onClose, onChangeStatus, onAssign, 
             {couriers.length === 0 && <p className="mt-3 text-xs text-amber-300">No hay repartidores registrados.</p>}
           </div>
         )}
+
+        {error && <p className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">{error}</p>}
 
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           {canUnassign && (
