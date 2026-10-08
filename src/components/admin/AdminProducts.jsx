@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import api from "../../services/api";
+import api, { getErrorMessage } from "../../services/api";
 import AdminCategories from "./AdminCategories";
 import ImageInput from "./ImageInput";
 import ImageThumbnail from "./ImageThumbnail";
@@ -54,8 +54,7 @@ export default function AdminProducts() {
                     }
                 } catch (err) {
                     if (isMounted) {
-                        console.error(err);
-                        setError("Error al cargar la información.");
+                        setError(getErrorMessage(err, "Error al cargar la información."));
                     }
                 } finally {
                     if (isMounted) {
@@ -79,7 +78,7 @@ export default function AdminProducts() {
             const response = await api.get("/products?isActive=all");
             setProducts(response.data);
         } catch (err) {
-            setError("Error al cargar productos.", err);
+            setError(getErrorMessage(err, "Error al cargar productos."));
         } finally {
             setLoading(false);
         }
@@ -147,7 +146,7 @@ export default function AdminProducts() {
             setEditingId(null);
             fetchProducts();
         } catch (err) {
-            setError(err.response?.data?.error || "Error al guardar el producto.");
+            setError(getErrorMessage(err, "Error al guardar el producto."));
         }
     };
 
@@ -190,11 +189,8 @@ export default function AdminProducts() {
             });
             fetchProducts();
         } catch (err) {
-            setConfirmModal((prev) => ({ ...prev, loading: false }));
-            alert(
-                "Error al cambiar el estado del producto",
-                err.response?.data?.error || "",
-            );
+            setConfirmModal({ isOpen: false, product: null, action: null, loading: false });
+            setError(getErrorMessage(err, "Error al cambiar el estado del producto."));
         }
     };
 
@@ -205,7 +201,7 @@ export default function AdminProducts() {
             await api.delete(`/products/${product.id}`);
             fetchProducts();
         } catch (err) {
-            setError(err.response?.data?.error || "Error al eliminar el producto.");
+            setError(getErrorMessage(err, "Error al eliminar el producto."));
         }
     };
 

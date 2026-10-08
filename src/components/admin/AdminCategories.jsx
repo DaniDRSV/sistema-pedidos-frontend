@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../../services/api";
+import api, { getErrorMessage } from "../../services/api";
 import ImageInput from "./ImageInput";
 import ImageThumbnail from "./ImageThumbnail";
 import ConfirmModal from "./ConfirmModal";
@@ -30,8 +30,7 @@ export default function AdminCategories() {
             const response = await api.get("/categories?isActive=all");
             setCategories(response.data);
         } catch (err) {
-            console.error(err);
-            setError("Error al cargar las categorías.");
+            setError(getErrorMessage(err, "Error al cargar las categorías."));
         } finally {
             setLoading(false);
         }
@@ -49,8 +48,7 @@ export default function AdminCategories() {
                 }
             } catch (err) {
                 if (isMounted) {
-                    console.error(err);
-                    setError("Error al cargar las categorías.");
+                    setError(getErrorMessage(err, "Error al cargar las categorías."));
                 }
             } finally {
                 if (isMounted) {
@@ -83,7 +81,7 @@ export default function AdminCategories() {
             setEditingId(null);
             fetchCategories();
         } catch (err) {
-            setError(err.response?.data?.error || "Error al guardar la categoría.");
+            setError(getErrorMessage(err, "Error al guardar la categoría."));
         }
     };
 
@@ -124,11 +122,8 @@ export default function AdminCategories() {
             });
             fetchCategories();
         } catch (err) {
-            setConfirmModal((prev) => ({ ...prev, loading: false }));
-            alert(
-                "Error al cambiar el estado de la categoría",
-                err.response?.data?.error || "",
-            );
+            setConfirmModal({ isOpen: false, category: null, action: null, loading: false });
+            setError(getErrorMessage(err, "Error al cambiar el estado de la categoría."));
         }
     };
 
@@ -139,7 +134,7 @@ export default function AdminCategories() {
             await api.delete(`/categories/${category.id}`);
             fetchCategories();
         } catch (err) {
-            setError(err.response?.data?.error || "Error al eliminar la categoría.");
+            setError(getErrorMessage(err, "Error al eliminar la categoría."));
         }
     };
 

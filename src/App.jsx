@@ -68,10 +68,6 @@ function MainApp() {
     return <DeliveryDashboard />;
   }
 
-  if (['CHEF', 'COCINA', 'PREPARADOR'].includes(role)) {
-    return <PreparationDashboard />;
-  }
-
   if (currentRoute === routes.preparation) {
     return <PreparationDashboard onBack={() => navigate(routes.dashboard)} />;
   }

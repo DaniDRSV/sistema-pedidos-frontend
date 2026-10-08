@@ -1,7 +1,7 @@
 import { useState } from "react";
-import api from "../../services/api";
+import api, { getErrorDetails, getErrorMessage } from "../../services/api";
 import { calculateCart, money } from "../../utils/cartTotals";
-import { DeliveryStatus, PaymentMethod, saveOrderWorkflow } from "../../services/deliveryWorkflow";
+import { PaymentMethod } from "../../utils/orderStatus";
 
 export default function Cart({ cart, onClose, onOrderCreated }) {
   const [address, setAddress] = useState("");
@@ -37,19 +37,13 @@ export default function Cart({ cart, onClose, onOrderCreated }) {
       });
 
       setOrder(response.data);
-      saveOrderWorkflow(response.data, {
-        status: DeliveryStatus.CREATED,
-        paymentMethod,
-        createdAt: new Date().toISOString(),
-      });
       cart.clearCart();
       onOrderCreated?.();
     } catch (err) {
-      const status = err.response?.status;
-      const data = err.response?.data;
+      const details = getErrorDetails(err);
 
-      if (status === 409 && Array.isArray(data?.details)) {
-        data.details.forEach((detail) => {
+      if (err.response?.status === 409 && Array.isArray(details)) {
+        details.forEach((detail) => {
           if (detail.available === undefined) {
             cart.removeItem(detail.productId);
           } else if (detail.available > 0) {
@@ -60,11 +54,7 @@ export default function Cart({ cart, onClose, onOrderCreated }) {
         });
       }
 
-      setError(
-        data?.error ||
-          data?.message ||
-          "No se pudo confirmar el pedido. Intenta de nuevo."
-      );
+      setError(getErrorMessage(err, "No se pudo confirmar el pedido. Intenta de nuevo."));
     } finally {
       setSending(false);
     }

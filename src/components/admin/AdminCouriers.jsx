@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { DELIVERY_WORKFLOW_EVENT, getCouriers } from "../../services/deliveryWorkflow";
+import api, { getErrorMessage } from "../../services/api";
 
 function CourierIcon({ className = "h-6 w-6" }) {
   return (
@@ -22,18 +22,25 @@ function CourierIcon({ className = "h-6 w-6" }) {
 }
 
 export default function AdminCouriers() {
-  const [couriers, setCouriers] = useState(() => getCouriers());
+  const [couriers, setCouriers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const refreshCouriers = useCallback(() => setCouriers(getCouriers()), []);
+  const refreshCouriers = useCallback(async () => {
+    try {
+      const response = await api.get("/deliveries/couriers");
+      setCouriers(response.data);
+      setError("");
+    } catch (err) {
+      setError(getErrorMessage(err, "No se pudieron cargar los repartidores."));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    window.addEventListener("storage", refreshCouriers);
-    window.addEventListener(DELIVERY_WORKFLOW_EVENT, refreshCouriers);
-
-    return () => {
-      window.removeEventListener("storage", refreshCouriers);
-      window.removeEventListener(DELIVERY_WORKFLOW_EVENT, refreshCouriers);
-    };
+    const firstLoad = window.setTimeout(refreshCouriers, 0);
+    return () => window.clearTimeout(firstLoad);
   }, [refreshCouriers]);
 
   const availableCouriers = couriers.filter((courier) => courier.available);
@@ -50,7 +57,7 @@ export default function AdminCouriers() {
             </div>
             <div>
               <h1 className="text-xl font-black tracking-tight text-white">Repartidores</h1>
-              <p className="text-xs text-slate-400">Consulta los repartidores que están listos para recibir entregas.</p>
+              <p className="text-xs text-slate-400">Repartidores registrados y su carga de trabajo actual.</p>
             </div>
           </div>
 
@@ -68,31 +75,34 @@ export default function AdminCouriers() {
         <section className="max-w-sm rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-5">
           <p className="text-sm font-semibold text-emerald-100">Repartidores disponibles</p>
           <p className="mt-2 text-4xl font-black text-emerald-300">{availableCouriers.length}</p>
-          <p className="mt-1 text-xs text-emerald-100/70">Listos para recibir una solicitud de entrega.</p>
+          <p className="mt-1 text-xs text-emerald-100/70">Sin pedidos en preparación ni en camino.</p>
         </section>
 
         <section className="mt-6 rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-xl shadow-slate-950/20 md:p-7">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-black text-white">Disponibles ahora</h2>
-              <p className="mt-1 text-sm text-slate-400">Estos repartidores pueden ser seleccionados al asignar un pedido.</p>
+              <h2 className="text-xl font-black text-white">Equipo de reparto</h2>
+              <p className="mt-1 text-sm text-slate-400">Para registrar un repartidor, asigna el rol DELIVERY a su usuario.</p>
             </div>
             <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
-              {availableCouriers.length}
+              {couriers.length}
             </span>
           </div>
 
-          {availableCouriers.length === 0 ? (
+          {error && <p className="mt-5 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">{error}</p>}
+
+          {loading ? (
+            <p className="py-16 text-center text-slate-400">Cargando repartidores…</p>
+          ) : couriers.length === 0 ? (
             <div className="py-16 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-slate-500">
                 <CourierIcon className="h-7 w-7" />
               </div>
-              <p className="mt-4 font-bold text-slate-300">No hay repartidores disponibles.</p>
-              <p className="mt-1 text-sm text-slate-500">Aparecerán aquí cuando un repartidor active su disponibilidad.</p>
+              <p className="mt-4 font-bold text-slate-300">No hay repartidores registrados.</p>
             </div>
           ) : (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {availableCouriers.map((courier) => (
+              {couriers.map((courier) => (
                 <article
                   key={courier.id}
                   className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5 transition hover:border-emerald-400/35"
@@ -101,9 +111,9 @@ export default function AdminCouriers() {
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/10 text-lg font-black text-emerald-300">
                       {courier.fullName?.charAt(0)?.toUpperCase() || "R"}
                     </div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      Disponible
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${courier.available ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300" : "border-amber-400/20 bg-amber-400/10 text-amber-300"}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${courier.available ? "bg-emerald-400" : "bg-amber-400"}`} />
+                      {courier.available ? "Disponible" : `${courier.activeOrders} pedido(s) activos`}
                     </span>
                   </div>
                   <h3 className="mt-4 truncate text-base font-black text-white">{courier.fullName || "Repartidor"}</h3>

@@ -99,18 +99,13 @@ export default function Register() {
     const fullPhoneNumber = `${countryCode} ${phone}`;
 
     try {
-      const response = await api.post("/auth/register", {
+      await api.post("/auth/register", {
         fullName,
         email,
         phone: fullPhoneNumber,
         password,
       });
-
-      if (response.data?.success) {
-        setRegistered(true);
-      } else {
-        setError(response.data?.message || "Ocurrió un problema al registrar la cuenta.");
-      }
+      setRegistered(true);
     } catch (err) {
       setError(
         err.response?.data?.message || "Error de conexión con el servidor."
